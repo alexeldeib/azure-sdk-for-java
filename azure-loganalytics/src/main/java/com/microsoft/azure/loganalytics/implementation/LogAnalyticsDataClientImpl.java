@@ -8,15 +8,15 @@
 
 package com.microsoft.azure.loganalytics.implementation;
 
-import com.microsoft.azure.loganalytics.OperationalInsightsDataClient;
-import com.microsoft.rest.ServiceClient;
-import com.microsoft.rest.RestClient;
-import okhttp3.OkHttpClient;
-import retrofit2.Retrofit;
 import com.google.common.reflect.TypeToken;
+import com.microsoft.azure.AzureClient;
+import com.microsoft.azure.AzureServiceClient;
+import com.microsoft.azure.loganalytics.LogAnalyticsDataClient;
 import com.microsoft.azure.loganalytics.models.ErrorResponseException;
 import com.microsoft.azure.loganalytics.models.QueryBody;
 import com.microsoft.azure.loganalytics.models.QueryResults;
+import com.microsoft.rest.credentials.ServiceClientCredentials;
+import com.microsoft.rest.RestClient;
 import com.microsoft.rest.ServiceCallback;
 import com.microsoft.rest.ServiceFuture;
 import com.microsoft.rest.ServiceResponse;
@@ -24,6 +24,7 @@ import com.microsoft.rest.Validator;
 import java.io.IOException;
 import okhttp3.ResponseBody;
 import retrofit2.http.Body;
+import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.Path;
 import retrofit2.http.POST;
@@ -32,80 +33,151 @@ import rx.functions.Func1;
 import rx.Observable;
 
 /**
- * Initializes a new instance of the OperationalInsightsDataClient class.
+ * Initializes a new instance of the LogAnalyticsDataClientImpl class.
  */
-public class OperationalInsightsDataClientImpl extends ServiceClient implements OperationalInsightsDataClient {
-    /**
-     * The Retrofit service to perform REST calls.
-     */
-    private OperationalInsightsDataClientService service;
+public class LogAnalyticsDataClientImpl extends AzureServiceClient implements LogAnalyticsDataClient {
+    /** The Retrofit service to perform REST calls. */
+    private LogAnalyticsDataClientService service;
+    /** the {@link AzureClient} used for long running operations. */
+    private AzureClient azureClient;
 
     /**
-     * Initializes an instance of OperationalInsightsDataClient client.
+     * Gets the {@link AzureClient} used for long running operations.
+     * @return the azure client;
      */
-    public OperationalInsightsDataClientImpl() {
-        this("https://api.loganalytics.io/v1");
+    public AzureClient getAzureClient() {
+        return this.azureClient;
+    }
+
+    /** Gets or sets the preferred language for the response. */
+    private String acceptLanguage;
+
+    /**
+     * Gets Gets or sets the preferred language for the response.
+     *
+     * @return the acceptLanguage value.
+     */
+    public String acceptLanguage() {
+        return this.acceptLanguage;
     }
 
     /**
-     * Initializes an instance of OperationalInsightsDataClient client.
+     * Sets Gets or sets the preferred language for the response.
+     *
+     * @param acceptLanguage the acceptLanguage value.
+     * @return the service client itself
+     */
+    public LogAnalyticsDataClientImpl withAcceptLanguage(String acceptLanguage) {
+        this.acceptLanguage = acceptLanguage;
+        return this;
+    }
+
+    /** Gets or sets the retry timeout in seconds for Long Running Operations. Default value is 30. */
+    private int longRunningOperationRetryTimeout;
+
+    /**
+     * Gets Gets or sets the retry timeout in seconds for Long Running Operations. Default value is 30.
+     *
+     * @return the longRunningOperationRetryTimeout value.
+     */
+    public int longRunningOperationRetryTimeout() {
+        return this.longRunningOperationRetryTimeout;
+    }
+
+    /**
+     * Sets Gets or sets the retry timeout in seconds for Long Running Operations. Default value is 30.
+     *
+     * @param longRunningOperationRetryTimeout the longRunningOperationRetryTimeout value.
+     * @return the service client itself
+     */
+    public LogAnalyticsDataClientImpl withLongRunningOperationRetryTimeout(int longRunningOperationRetryTimeout) {
+        this.longRunningOperationRetryTimeout = longRunningOperationRetryTimeout;
+        return this;
+    }
+
+    /** When set to true a unique x-ms-client-request-id value is generated and included in each request. Default is true. */
+    private boolean generateClientRequestId;
+
+    /**
+     * Gets When set to true a unique x-ms-client-request-id value is generated and included in each request. Default is true.
+     *
+     * @return the generateClientRequestId value.
+     */
+    public boolean generateClientRequestId() {
+        return this.generateClientRequestId;
+    }
+
+    /**
+     * Sets When set to true a unique x-ms-client-request-id value is generated and included in each request. Default is true.
+     *
+     * @param generateClientRequestId the generateClientRequestId value.
+     * @return the service client itself
+     */
+    public LogAnalyticsDataClientImpl withGenerateClientRequestId(boolean generateClientRequestId) {
+        this.generateClientRequestId = generateClientRequestId;
+        return this;
+    }
+
+    /**
+     * Initializes an instance of LogAnalyticsDataClient client.
+     *
+     * @param credentials the management credentials for Azure
+     */
+    public LogAnalyticsDataClientImpl(ServiceClientCredentials credentials) {
+        this("https://api.loganalytics.io/v1", credentials);
+    }
+
+    /**
+     * Initializes an instance of LogAnalyticsDataClient client.
      *
      * @param baseUrl the base URL of the host
+     * @param credentials the management credentials for Azure
      */
-    public OperationalInsightsDataClientImpl(String baseUrl) {
-        super(baseUrl);
+    public LogAnalyticsDataClientImpl(String baseUrl, ServiceClientCredentials credentials) {
+        super(baseUrl, credentials);
         initialize();
     }
 
     /**
-     * Initializes an instance of OperationalInsightsDataClient client.
+     * Initializes an instance of LogAnalyticsDataClient client.
      *
-     * @param clientBuilder the builder for building an OkHttp client, bundled with user configurations
-     * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
+     * @param restClient the REST client to connect to Azure.
      */
-    public OperationalInsightsDataClientImpl(OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        this("https://api.loganalytics.io/v1", clientBuilder, restBuilder);
-        initialize();
-    }
-
-    /**
-     * Initializes an instance of OperationalInsightsDataClient client.
-     *
-     * @param baseUrl the base URL of the host
-     * @param clientBuilder the builder for building an OkHttp client, bundled with user configurations
-     * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
-     */
-    public OperationalInsightsDataClientImpl(String baseUrl, OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        super(baseUrl, clientBuilder, restBuilder);
-        initialize();
-    }
-
-    /**
-     * Initializes an instance of OperationalInsightsDataClient client.
-     *
-     * @param restClient the REST client containing pre-configured settings
-     */
-    public OperationalInsightsDataClientImpl(RestClient restClient) {
+    public LogAnalyticsDataClientImpl(RestClient restClient) {
         super(restClient);
         initialize();
     }
 
-    private void initialize() {
+    protected void initialize() {
+        this.acceptLanguage = "en-US";
+        this.longRunningOperationRetryTimeout = 30;
+        this.generateClientRequestId = true;
+        this.azureClient = new AzureClient(this);
         initializeService();
     }
 
+    /**
+     * Gets the User-Agent header for the client.
+     *
+     * @return the user agent string.
+     */
+    @Override
+    public String userAgent() {
+        return String.format("%s (%s, %s)", super.userAgent(), "LogAnalyticsDataClient", "v1");
+    }
+
     private void initializeService() {
-        service = retrofit().create(OperationalInsightsDataClientService.class);
+        service = restClient().retrofit().create(LogAnalyticsDataClientService.class);
     }
 
     /**
-     * The interface defining all the services for OperationalInsightsDataClient to be
+     * The interface defining all the services for LogAnalyticsDataClient to be
      * used by Retrofit to perform actually REST calls.
      */
-    interface OperationalInsightsDataClientService {
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.loganalytics.OperationalInsightsDataClient query" })
+    interface LogAnalyticsDataClientService {
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.loganalytics.LogAnalyticsDataClient query" })
         @POST("workspaces/{workspaceId}/query")
-        Observable<Response<ResponseBody>> query(@Path("workspaceId") String workspaceId, @Body QueryBody body);
+        Observable<Response<ResponseBody>> query(@Path("workspaceId") String workspaceId, @Body QueryBody body, @Header("accept-language") String acceptLanguage, @Header("User-Agent") String userAgent);
 
     }
 
@@ -173,7 +245,7 @@ public class OperationalInsightsDataClientImpl extends ServiceClient implements 
             throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
         Validator.validate(body);
-        return service.query(workspaceId, body)
+        return service.query(workspaceId, body, this.acceptLanguage(), this.userAgent())
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<QueryResults>>>() {
                 @Override
                 public Observable<ServiceResponse<QueryResults>> call(Response<ResponseBody> response) {

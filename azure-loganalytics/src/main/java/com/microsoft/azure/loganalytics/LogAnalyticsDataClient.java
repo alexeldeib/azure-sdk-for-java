@@ -8,20 +8,21 @@
 
 package com.microsoft.azure.loganalytics;
 
+import com.microsoft.azure.AzureClient;
 import com.microsoft.azure.loganalytics.models.ErrorResponseException;
 import com.microsoft.azure.loganalytics.models.QueryBody;
 import com.microsoft.azure.loganalytics.models.QueryResults;
+import com.microsoft.rest.RestClient;
 import com.microsoft.rest.ServiceCallback;
 import com.microsoft.rest.ServiceFuture;
 import com.microsoft.rest.ServiceResponse;
 import java.io.IOException;
 import rx.Observable;
-import com.microsoft.rest.RestClient;
 
 /**
- * The interface for OperationalInsightsDataClient class.
+ * The interface for LogAnalyticsDataClient class.
  */
-public interface OperationalInsightsDataClient {
+public interface LogAnalyticsDataClient {
     /**
      * Gets the REST client.
      *
@@ -30,9 +31,62 @@ public interface OperationalInsightsDataClient {
     RestClient restClient();
 
     /**
-     * The default base URL.
+     * Gets the {@link AzureClient} used for long running operations.
+     * @return the azure client;
      */
-    String DEFAULT_BASE_URL = "https://api.loganalytics.io/v1";
+    AzureClient getAzureClient();
+
+    /**
+     * Gets the User-Agent header for the client.
+     *
+     * @return the user agent string.
+     */
+    String userAgent();
+
+    /**
+     * Gets Gets or sets the preferred language for the response..
+     *
+     * @return the acceptLanguage value.
+     */
+    String acceptLanguage();
+
+    /**
+     * Sets Gets or sets the preferred language for the response..
+     *
+     * @param acceptLanguage the acceptLanguage value.
+     * @return the service client itself
+     */
+    LogAnalyticsDataClient withAcceptLanguage(String acceptLanguage);
+
+    /**
+     * Gets Gets or sets the retry timeout in seconds for Long Running Operations. Default value is 30..
+     *
+     * @return the longRunningOperationRetryTimeout value.
+     */
+    int longRunningOperationRetryTimeout();
+
+    /**
+     * Sets Gets or sets the retry timeout in seconds for Long Running Operations. Default value is 30..
+     *
+     * @param longRunningOperationRetryTimeout the longRunningOperationRetryTimeout value.
+     * @return the service client itself
+     */
+    LogAnalyticsDataClient withLongRunningOperationRetryTimeout(int longRunningOperationRetryTimeout);
+
+    /**
+     * Gets When set to true a unique x-ms-client-request-id value is generated and included in each request. Default is true..
+     *
+     * @return the generateClientRequestId value.
+     */
+    boolean generateClientRequestId();
+
+    /**
+     * Sets When set to true a unique x-ms-client-request-id value is generated and included in each request. Default is true..
+     *
+     * @param generateClientRequestId the generateClientRequestId value.
+     * @return the service client itself
+     */
+    LogAnalyticsDataClient withGenerateClientRequestId(boolean generateClientRequestId);
 
     /**
      * Execute an Analytics query.
