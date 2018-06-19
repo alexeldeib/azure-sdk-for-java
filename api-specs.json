@@ -260,7 +260,7 @@
     "dir": "azure-loganalytics",
     "source": "specification/operationalinsights/data-plane/readme.md",
     "package": "com.microsoft.azure.loganalytics",
-    "args": "--payload-flattening-threshold=1",
+    "args": "--payload-flattening-threshold=1 --override-client-name=LogAnalyticsDataClient",
     "fluent": false
   },
   "logic": {
